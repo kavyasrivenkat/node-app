@@ -2,55 +2,47 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'kavyasrimandala/node-app'
-        DOCKER_CREDENTIALS = 'dockerhub'
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+        IMAGE_NAME = "kavyasrimandala/node-app"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo 'Checking out source code...'
-                git branch: 'main', url: 'https://github.com/your-repo/node-app.git'
+                git 'https://github.com/kavyasrivenkat/node-app.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo 'Building Docker image...'
-                sh 'docker build -t $DOCKER_IMAGE:latest .'
+                script {
+                    sh 'docker build -t $IMAGE_NAME:$BUILD_NUMBER .'
+                }
             }
         }
 
         stage('Login to Docker Hub') {
             steps {
-                echo 'Logging in to Docker Hub...'
-                withCredentials([usernamePassword(credentialsId: "$DOCKER_CREDENTIALS", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                    sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
+                script {
+                    sh "echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin"
                 }
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Push Image to Docker Hub') {
             steps {
-                echo 'Pushing Docker image to Docker Hub...'
-                sh 'docker push $DOCKER_IMAGE:latest'
+                script {
+                    sh 'docker push $IMAGE_NAME:$BUILD_NUMBER'
+                    sh 'docker tag $IMAGE_NAME:$BUILD_NUMBER $IMAGE_NAME:latest'
+                    sh 'docker push $IMAGE_NAME:latest'
+                }
             }
         }
 
         stage('Cleanup') {
             steps {
-                echo 'Removing local Docker image...'
-                sh 'docker rmi $DOCKER_IMAGE:latest || true'
+                sh 'docker system prune -f'
             }
-        }
-    }
-
-    post {
-        success {
-            echo '✅ Docker image built and pushed successfully!'
-        }
-        failure {
-            echo '❌ Build failed. Check the logs for details.'
         }
     }
 }
