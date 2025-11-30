@@ -37,17 +37,17 @@ pipeline {
                 sh 'docker logout'
             }
         }
-        stage('Deploy to Kubernetes') {
-    steps {
-        withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG')]) {
-            sh '''
-                export KUBECONFIG=$KUBECONFIG
-                kubectl apply -f deployment.yaml
-                kubectl apply -f service.yaml
-                kubectl rollout status deployment/node-app
-            '''
-        }
-    }
+        stage('Deploy to Kubernetes (Minikube)') {
+  steps {
+    bat """
+    set KUBECONFIG=C:\\Users\\ashwi\\.kube\\config
+    kubectl config use-context minikube
+    kubectl apply -f deployment.yaml --validate=false
+    kubectl apply -f service.yaml --validate=false
+    kubectl get pods
+    kubectl get svc
+    """
+  }
 }
 
     }
