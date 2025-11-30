@@ -40,7 +40,7 @@ pipeline {
         stage('Deploy to Kubernetes (Minikube)') {
   steps {
     bat """
-    set KUBECONFIG=C:\\Users\\ashwi\\.kube\\config
+    set KUBECONFIG=C:\\Users\\kavya\\.kube\\config
     kubectl config use-context minikube
     kubectl apply -f deployment.yaml --validate=false
     kubectl apply -f service.yaml --validate=false
