@@ -37,5 +37,18 @@ pipeline {
                 sh 'docker logout'
             }
         }
+        stage('Deploy to Kubernetes') {
+    steps {
+        withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG')]) {
+            sh '''
+                export KUBECONFIG=$KUBECONFIG
+                kubectl apply -f deployment.yaml
+                kubectl apply -f service.yaml
+                kubectl rollout status deployment/node-app
+            '''
+        }
+    }
+}
+
     }
 }
